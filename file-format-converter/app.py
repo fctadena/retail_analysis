@@ -3,7 +3,7 @@ import os
 import json
 import re
 import pandas as pd
-
+import sys
 
 def get_column_names(schemas, ds_name, sorting_key='column_position'):
     column_details = schemas[ds_name]
@@ -30,6 +30,8 @@ def to_json(df, tgt_base_dir, ds_name, file_name):
 def file_converter(tgt_base_dir, src_base_dir, ds_name):    
     schemas = json.load(open(f'{src_base_dir}/schemas.json'))
     files = glob.glob(f'{src_base_dir}/{ds_name}/part-*')
+    if len(files) == 0:
+        raise NameError(f'No files found for {ds_name}')
     
     for file in files:
         print(f'Processing: {file}')
@@ -39,16 +41,27 @@ def file_converter(tgt_base_dir, src_base_dir, ds_name):
         
         
 def process_files(ds_names=None):
-    src_base_dir = 'data/retail_db'
-    tgt_base_dir = 'data/file-format-converter/data/retail_db_json'
+    # src_base_dir = 'data/retail_db'
+    # tgt_base_dir = 'data/file-format-converter/data/retail_db_json'
+
+    src_base_dir = os.environ.get('SRC_BASE_DIR')
+    tgt_base_dir = os.environ.get('TGT_BASE_DIR')
     schemas = json.load(open(f'{src_base_dir}/schemas.json'))
     if not ds_names:
         ds_names = schemas.keys()
     for ds_name in ds_names:
-        print(f'Processing {ds_name}')
-        file_converter(tgt_base_dir, src_base_dir, ds_name)
+        try:
+            print(f'Processing {ds_name}')
+            file_converter(tgt_base_dir, src_base_dir, ds_name)
+        except NameError as ne:
+            print(f'Error processing {ds_name}: {ne}')
+            pass
         
 
 
 if __name__ == '__main__':
-    process_files()
+    if len(sys.argv) == 2:
+        ds_names = json.loads(sys.argv[1])
+        process_files(ds_names)
+    else:
+        process_files()

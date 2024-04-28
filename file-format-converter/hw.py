@@ -1,9 +1,14 @@
+
 import sys
+import os
+
 
 args = sys.argv
-
 arg = args[1]
-prog_file = args[0]
+file_name = args[0]
 
+print(f'This is the passed argument: {arg}, from {file_name}')
 
-print(f'This is the argument {arg} while this is the path {prog_file}')
+host = os.environ.get('HOST')
+
+print(f'Connecting to {host}')
